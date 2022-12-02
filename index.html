@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <style>
+            html, body {
+    overflow: hidden;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+            canvas{
+                background-color: blue;
+            }
+        </style>
+    </head>
+    <body style="background-color:blueviolet ;">
+        <canvas id="canvas" >
+            Your browser does not support the canvas element.
+        </canvas>
+<!-- <audio src="background.mp3" controls></audio> -->
+    </body>
+<script>
+    let canvas;
+    let context;
+    let playerPosX=100;
+    let playerPosY;
+    let playerLen=100;
+    let ballPosX=100;
+    let ballPosY=100;
+    let ballSpeadX=5;
+    let ballSpeadY=5; 
+    let ballEnable=false;   
+    let needShowHelp=false;
+    let gs_Heart=3;
+    let gs_Score=0;
+
+    let soundBackground=new Audio('background.mp3');
+    //let boxes=[[' ',' ',' '],[' ',' ',' '],[' ',' ',' '] ];
+    let boxes=[
+        ['3','5','5','4','8'],['4',' ','s','5','6'],['3','S',' ','w','s'],['1','2','3',' ',' '],['4','5','6','2','3'],
+        ['7','6','s','w','5'],['W','w','s','5','6'],['4',' ',' ','w','s'],['s','S',' ',' ',' '],['1','2','3','2','3'],
+        ['4','4','S','w','4'],['7','8','9','5','6'],['3','w','s','w','s'],['w',' ',' ',' ',' '],['s','S',' ','2','3'],
+        ['3','4','w','w','3'],['w',' ',' ','5','6'],['4','S',' ','w','s'],['1','2','3',' ',' '],['4','5','6','2','3'],
+        ['7','8','W','w','3'],['W','w','s','5','6'],['1',' ',' ','w','s'],['s','S',' ',' ',' '],['1','2','3','2','3'],
+         ];
+    let goals=[];
+    window.onload=main();
+    soundBackground.play();
+    soundBackground.load(()=>{
+ soundBackground.play();
+alert(1);
+    });
+    document.onmousemove= mouseCoordinates;
+    function mouseCoordinates(event){
+        var xPos= event.clientX;
+
+var yPos= event.clientY;
+        if(xPos+playerLen<canvas.width)
+            playerPosX=xPos;
+        else
+        playerPosX=canvas.width- playerLen;
+    }
+    function main(){
+        canvas=document.getElementById('canvas');
+        canvas.width=1000;// document.body.clientWidth;
+        canvas.height=700;// window.innerHeight;
+     
+        context=canvas.getContext('2d');
+
+        playerPosY=canvas.height-50;
+        GameLoap();
+    }
+    function GameLoap(){
+      
+        if(!needShowHelp){
+          if(gs_Heart<1)
+            ShowGameOver();
+          else
+            {clear();
+            ShowGame();}
+        }
+        else
+            showHelp();
+        window.requestAnimationFrame(GameLoap);
+    }
+    function clear(){
+        context.clearRect(0, 0, canvas.width, canvas.height);
+    }
+    function ShowGameOver(){
+        context.font="60px aria";
+        context.strokeText(`Game Over !`, 300,300)
+        context.font="40px aria";
+
+        context.strokeText(`Your Final Score: ${gs_Score}`, 300,400)
+    }
+    function showHelp(){
+        
+    }
+    function ShowGame(){
+        calulateBall();
+        drawWall();
+        drawBox();
+        drawGoal();
+        drawBall();
+        drawPlayer();
+        drawText();
+    }
+    function drawText(){
+        context.font="15px aria";
+        context.strokeText(`Heart: ${gs_Heart}`, 10,15)
+        context.strokeText(`Score: ${gs_Score}`, 80,15)
+    }
+    function drawBox(){
+        for (var i = 0; i < boxes.length; i++) {
+    for (var j = 0; j < boxes[i].length; j++) {
+        let a=boxes[i][j];
+        if(a!=""){
+            context.beginPath();
+            context.rect(100+(i*30),100+(j*30),25,25);
+            let color='#0369CF';
+            if(a=='9')
+            color="#555599";
+            else  if(a=='8')
+            color="#555588";
+            else  if(a=='7')
+            color="#555577";
+            else  if(a=='6')
+            color="#555566";
+            else  if(a=='5')
+            color="#555555";
+            else  if(a=='4')
+            color="#555544";
+            else  if(a=='3')
+            color="#555533";
+            else  if(a=='2')
+            color="#555522";
+            else  if(a=='1')
+            color="#555511";
+            else  if(a=='W')
+            color="green";
+            else  if(a=='w')
+            color="red";
+            else  if(a=='S')
+            color="Yellow";
+            else  if(a=='s')
+            color="pink";
+            context.fillStyle=color;
+
+            context.fill();
+            context.stroke();
+            context.strokeText(a,100+(i*30)+5,100+(j*30)+15)
+        }
+    }
+}
+    }
+   
+    function drawGoal(){
+        let fLen = goals.length;
+
+        for (let i = 0; i < fLen; i++) {
+            var a= goals[i] ;
+            context.beginPath();
+            context.arc(a.x,a.y,13,Math.PI* (a.y/20 %2) -Math.PI,Math.PI* (a.y/20 %2) );
+            context.fillStroke="yellow";
+            context.stroke();
+
+
+            context.beginPath();
+            context.arc(a.x,a.y,10,0,Math.PI*(2) );
+           // context.fillStyle="red";
+           // context.fill();
+            context.stroke();
+            context.strokeText(a.t,a.x-3,a.y+3);
+
+            a.y++;
+
+            //todo:remove
+        }  
+    }
+
+    
+    function drawWall(){
+        const tickt=2;
+        context.beginPath();
+        context.rect(0,0,canvas.width,tickt);
+        context.fillStyle="red";
+        context.stroke();
+        context.beginPath();
+        context.rect(0,0,tickt,canvas.height);
+        context.fillStyle="red";
+        context.stroke();
+        context.beginPath();
+        context.rect(canvas.width-tickt,0,tickt,canvas.height);
+        context.fillStyle="red";
+        context.stroke();
+    }
+
+    function drawBall(){
+        context.beginPath();
+        context.arc(ballPosX,ballPosY,10,0,Math.PI*2);
+        context.fillStyle="yellow";
+        context.fill();
+        context.stroke();
+    }
+
+    function drawPlayer(){
+        context.beginPath();
+        context.rect(playerPosX,playerPosY,playerLen,10);
+        // context.lineWidth = 1;
+  context.fillStyle = '#66AA66';
+  context.fill();
+        context.stroke();
+    }
+
+
+    function calulateBall()
+    {
+        if(ballEnable){
+            ballPosX+=ballSpeadX;
+            ballPosY+=ballSpeadY;
+        }
+        else{
+            ballPosX=playerPosX+(playerLen/2);
+            ballPosY=playerPosY-10;
+        }
+
+        if(ballPosX<0 || ballPosX>canvas.width)
+            ballSpeadX=ballSpeadX*-1;
+
+        if(ballPosY<0)
+            ballSpeadY=ballSpeadY*-1;
+        
+        if(ballPosY>canvas.height){
+         
+            ballEnable=false;
+            gs_Heart--;
+        }
+
+
+        if(ballPosY>playerPosY && ballPosY<playerPosY+10){
+
+            if(ballPosX>playerPosX && ballPosX<playerPosX+100)
+            {
+                ballSpeadY=ballSpeadY*-1;
+            }
+        }
+
+        for (var i = 0; i < boxes.length; i++) {
+        for (var j = 0; j < boxes[i].length; j++) {
+        let a=boxes[i][j];
+        if(a!=""){
+            let x=100+(i*30);
+            let y=100+(j*30);
+            let len=25;
+            if(ballPosY>y && ballPosY<y+6){
+
+                if(ballPosX>x && ballPosX<x+len)
+                {
+                    ballSpeadY=ballSpeadY*-1;
+                    if( a=='9')
+                        boxes[i][j]='8';
+                    else  if( a=='8')
+                        boxes[i][j]='7';
+                    else  if( a=='7')
+                        boxes[i][j]='6';
+                    else  if( a=='6')
+                        boxes[i][j]='5';
+                    else  if( a=='5')
+                        boxes[i][j]='4';
+                    else  if( a=='4')
+                        boxes[i][j]='3';
+                    else  if( a=='3')
+                        boxes[i][j]='2';
+                    else  if( a=='2')
+                        boxes[i][j]='1';
+                    else if( a=='1')
+                        boxes[i][j]=' ';
+                    else if(a==" ")
+                        boxes[i][j]='';
+                    else 
+                        goals.push({x:ballPosX,y:ballPosY,t:a});
+                    gs_Score++;
+                }
+            }
+            if(ballPosY>y+40 && ballPosY<y+46){
+
+                if(ballPosX>x && ballPosX<x+len)
+                {
+                    ballSpeadY=ballSpeadY*-1;
+                    if( a=='9')
+                        boxes[i][j]='8';
+                    else  if( a=='8')
+                        boxes[i][j]='7';
+                    else  if( a=='7')
+                        boxes[i][j]='6';
+                    else  if( a=='6')
+                        boxes[i][j]='5';
+                    else  if( a=='5')
+                        boxes[i][j]='4';
+                    else  if( a=='4')
+                        boxes[i][j]='3';
+                    else  if( a=='3')
+                        boxes[i][j]='2';
+                    else  if( a=='2')
+                        boxes[i][j]='1';
+                    else if( a=='1')
+                        boxes[i][j]=' ';
+                    else if(a==" ")
+                        boxes[i][j]='';
+                    else 
+                        goals.push({x:ballPosX,y:ballPosY,t:a});
+                    gs_Score++;
+                }
+            }
+        }
+    }
+        }}
+    
+
+    document.onkeydown = function (event) {
+       
+      switch (event.keyCode) {
+        case 32:
+        needShowHelp=!needShowHelp;
+        ballEnable=true;
+            break;
+         case 37:
+            console.log("Left key is pressed.");
+            playerPosX-=5;
+            needShowHelp=false;
+            break;
+         case 38:
+            console.log("Up key is pressed.");
+            needShowHelp=false;
+            break;
+         case 39:
+            console.log("Right key is pressed.");
+            needShowHelp=false;
+            playerPosX+=5;
+            break;
+         case 40:
+            console.log("Down key is pressed.");
+            needShowHelp=false;
+            break;
+            default:
+            console.log(event.keyCode);
+                break;
+      }
+   };
+
+</script>
+
+</html>
