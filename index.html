@@ -30,18 +30,20 @@
     let ballSpeadY=5; 
     let ballEnable=false;   
     let needShowHelp=false;
+    let gs_Spead=10;
     let gs_Heart=3;
     let gs_Score=0;
+    let gs_ShowSplash=true;
 
     let soundBackground=new Audio('background.mp3');
     //let boxes=[[' ',' ',' '],[' ',' ',' '],[' ',' ',' '] ];
     let boxes=[
         ['3','5','5','4','8'],['4',' ','s','5','6'],['3','S',' ','w','s'],['1','2','3',' ',' '],['4','5','6','2','3'],
-        ['7','6','s','w','5'],['W','w','s','5','6'],['4',' ',' ','w','s'],['s','S',' ',' ',' '],['1','2','3','2','3'],
-        ['4','4','S','w','4'],['7','8','9','5','6'],['3','w','s','w','s'],['w',' ',' ',' ',' '],['s','S',' ','2','3'],
+        ['7','6','s','w','5'],['W','F','s','5','6'],['4',' ',' ','w','s'],['s','S',' ','f',' '],['1','2','3','2','3'],
+        ['4','4','S','w','4'],['7','8','9','5','6'],['3','w','f','w','s'],['w',' ','F',' ',' '],['s','S',' ','2','3'],
         ['3','4','w','w','3'],['w',' ',' ','5','6'],['4','S',' ','w','s'],['1','2','3',' ',' '],['4','5','6','2','3'],
         ['7','8','W','w','3'],['W','w','s','5','6'],['1',' ',' ','w','s'],['s','S',' ',' ',' '],['1','2','3','2','3'],
-         ];
+        ['1','2','3','2','3']];
     let goals=[];
     window.onload=main();
     soundBackground.play();
@@ -50,15 +52,17 @@
 alert(1);
     });
     document.onmousemove= mouseCoordinates;
+    
     function mouseCoordinates(event){
         var xPos= event.clientX;
 
-var yPos= event.clientY;
+        var yPos= event.clientY;
         if(xPos+playerLen<canvas.width)
             playerPosX=xPos;
         else
         playerPosX=canvas.width- playerLen;
     }
+
     function main(){
         canvas=document.getElementById('canvas');
         canvas.width=1000;// document.body.clientWidth;
@@ -69,34 +73,69 @@ var yPos= event.clientY;
         playerPosY=canvas.height-50;
         GameLoap();
     }
+
     function GameLoap(){
       
         if(!needShowHelp){
           if(gs_Heart<1)
             ShowGameOver();
           else
-            {clear();
-            ShowGame();}
+            {
+                clear();
+                ShowGame();
+                if(gs_ShowSplash)
+                    showSplash();
+            }
         }
         else
             showHelp();
         window.requestAnimationFrame(GameLoap);
     }
+    
     function clear(){
         context.clearRect(0, 0, canvas.width, canvas.height);
     }
+    
     function ShowGameOver(){
+        context.fillStyle='#9999EE';
+        context.rect(150,300,650,300);
+        context.fill();
+        context.stroke();
+
         context.font="60px aria";
-        context.strokeText(`Game Over !`, 300,300)
+        context.strokeText(`Game Over !`, 300,400)
         context.font="40px aria";
 
-        context.strokeText(`Your Final Score: ${gs_Score}`, 300,400)
+        context.strokeText(`Your Final Score: ${gs_Score}`, 300,450)
     }
+    
+    function showSplash(){
+        context.fillStyle='#9999EE';
+        context.rect(150,300,650,300);
+        context.fill();
+        context.stroke();
+        
+        context.strokeText('Welcome to the Bounce-Ball game!',250,350);
+        context.strokeText('create by mohammad mahdizade!',250,370);
+        context.strokeText('you can try 3 time!',250,390);
+        context.strokeText('Scores:',250,420);
+        context.strokeText('W: board Bigger +',270,420);
+        context.strokeText('S: Add ten to Score +',270,440);
+        context.strokeText('F: Faster ball +',270,460);
+        context.strokeText('w: board Smaller -',270,480);
+        context.strokeText('S: Munes ten to Score +',270,500);
+        context.strokeText('f: Slower ball +',270,520);
+
+        context.strokeText('press any key to start!',250,570);
+    }
+   
     function showHelp(){
         
     }
+    
     function ShowGame(){
         calulateBall();
+        calulateGoal();
         drawWall();
         drawBox();
         drawGoal();
@@ -104,11 +143,14 @@ var yPos= event.clientY;
         drawPlayer();
         drawText();
     }
+   
     function drawText(){
         context.font="15px aria";
         context.strokeText(`Heart: ${gs_Heart}`, 10,15)
-        context.strokeText(`Score: ${gs_Score}`, 80,15)
+        context.strokeText(`Score: ${gs_Score}`, 100,15)
+        context.strokeText(`Spead: ${gs_Spead} x`, 200,15)
     }
+   
     function drawBox(){
         for (var i = 0; i < boxes.length; i++) {
     for (var j = 0; j < boxes[i].length; j++) {
@@ -158,6 +200,9 @@ var yPos= event.clientY;
 
         for (let i = 0; i < fLen; i++) {
             var a= goals[i] ;
+            //if(a.t=='')
+            if(a.y>canvas.height)
+                continue;
             context.beginPath();
             context.arc(a.x,a.y,13,Math.PI* (a.y/20 %2) -Math.PI,Math.PI* (a.y/20 %2) );
             context.fillStroke="yellow";
@@ -177,7 +222,6 @@ var yPos= event.clientY;
         }  
     }
 
-    
     function drawWall(){
         const tickt=2;
         context.beginPath();
@@ -211,12 +255,11 @@ var yPos= event.clientY;
         context.stroke();
     }
 
-
     function calulateBall()
     {
         if(ballEnable){
-            ballPosX+=ballSpeadX;
-            ballPosY+=ballSpeadY;
+            ballPosX+=gs_Spead/10* ballSpeadX ;
+            ballPosY+=gs_Spead/10* ballSpeadY;
         }
         else{
             ballPosX=playerPosX+(playerLen/2);
@@ -314,10 +357,51 @@ var yPos= event.clientY;
         }
     }
         }}
-    
+        
+    function calulateGoal()
+    {
 
+        for (var i = 0; i < goals.length; i++) {   
+            let goal=goals[i];
+            if(goal.y<playerPosY+5 && goal.y>playerPosY-5){
+                if(goal.x>playerPosX && goal.x<playerPosX+playerLen)
+                {
+                   
+                   if(goal.t=='W')
+                   {
+                        playerLen+=25;
+                   }
+
+                   if(goal.t=='w' && playerLen>25)
+                   {
+                        playerLen+=25;
+                   }
+                   if(goal.t=='S' )
+                   {
+                        gs_Score+=10;
+                   }
+                   if(goal.t=='s' )
+                   {
+                        gs_Score-=10;
+                   }
+                   if(goal.t=='F' )
+                   {
+                        gs_Spead+=1;
+                   }
+                   if(goal.t=='s' && gs_Spead>2 )
+                   {
+                        gs_Spead-=1;
+                   }
+
+                   goal.t='';
+                }
+            }
+          
+        }
+    }
+    
     document.onkeydown = function (event) {
-       
+       gs_ShowSplash=false;
       switch (event.keyCode) {
         case 32:
         needShowHelp=!needShowHelp;
