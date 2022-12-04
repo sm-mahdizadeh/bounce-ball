@@ -6,6 +6,7 @@
     overflow: hidden;
     margin: 0 !important;
     padding: 0 !important;
+    text-align: center;
 }
             canvas{
                 background-color: blue;
@@ -27,30 +28,34 @@
     let ballPosX=100;
     let ballPosY=100;
     let ballSpeadX=5;
-    let ballSpeadY=5; 
-    let ballEnable=false;   
+    let ballSpeadY=-5; 
+    let gs_ballEnable=false;   
     let needShowHelp=false;
     let gs_Spead=10;
-    let gs_Heart=3;
+    let gs_Heart=2;
     let gs_Score=0;
+    let gs_gardLine=false;
+    let gs_stickMode=false;
+    let gs_GameOver=false;
     let gs_ShowSplash=true;
 
-    let soundBackground=new Audio('background.mp3');
+    // let soundBackground=new Audio('background.mp3');
     //let boxes=[[' ',' ',' '],[' ',' ',' '],[' ',' ',' '] ];
-    let boxes=[
-        ['3','5','5','4','8'],['4',' ','s','5','6'],['3','S',' ','w','s'],['1','2','3',' ',' '],['4','5','6','2','3'],
-        ['7','6','s','w','5'],['W','F','s','5','6'],['4',' ',' ','w','s'],['s','S',' ','f',' '],['1','2','3','2','3'],
-        ['4','4','S','w','4'],['7','8','9','5','6'],['3','w','f','w','s'],['w',' ','F',' ',' '],['s','S',' ','2','3'],
-        ['3','4','w','w','3'],['w',' ',' ','5','6'],['4','S',' ','w','s'],['1','2','3',' ',' '],['4','5','6','2','3'],
-        ['7','8','W','w','3'],['W','w','s','5','6'],['1',' ',' ','w','s'],['s','S',' ',' ',' '],['1','2','3','2','3'],
-        ['1','2','3','2','3']];
+    let boxesOrgin=[
+        ['W','1','2','3','4'],['5','w','7','8','9'],[' ','1','S','3','4'],['5','6','7','s','9'],[' ','1','2','3','*'],
+        ['H','6','7','8','9'],[' ','h','2','3','4'],['5','6','F','8','9'],[' ','1','2','f','4'],['5','6','7','8','-'],
+        ['W','1','2','3','4'],['5','w','7','8','9'],[' ','1','S','3','4'],['5','6','7','s','9'],[' ','1','2','3','*'],
+        ['H','6','7','8','9'],[' ','h','2','3','4'],['5','6','F','8','9'],[' ','1','2','f','4'],['5','6','7','8','-'],
+        ['?','1','2','3','4'],['5','?','7','8','9'],[' ','1','?','3','4'],['5','6','7','?','9'],[' ','1','2','3','?'],
+        ['5','6','7','8','9']];
     let goals=[];
+    let boxes=[];
     window.onload=main();
-    soundBackground.play();
-    soundBackground.load(()=>{
- soundBackground.play();
-alert(1);
-    });
+//     soundBackground.play();
+//     soundBackground.load(()=>{
+//  soundBackground.play();
+// alert(1);
+//     });
     document.onmousemove= mouseCoordinates;
     
     function mouseCoordinates(event){
@@ -71,13 +76,14 @@ alert(1);
         context=canvas.getContext('2d');
 
         playerPosY=canvas.height-50;
+        ResetGame();
         GameLoap();
     }
 
     function GameLoap(){
       
         if(!needShowHelp){
-          if(gs_Heart<1)
+          if(gs_GameOver)
             ShowGameOver();
           else
             {
@@ -107,26 +113,34 @@ alert(1);
         context.font="40px aria";
 
         context.strokeText(`Your Final Score: ${gs_Score}`, 300,450)
+        context.font="20px aria";
+
+        context.strokeText('press any key to start!',400,550);
     }
     
     function showSplash(){
         context.fillStyle='#9999EE';
-        context.rect(150,300,650,300);
+        context.rect(150,280,650,330);
         context.fill();
         context.stroke();
         
-        context.strokeText('Welcome to the Bounce-Ball game!',250,350);
-        context.strokeText('create by mohammad mahdizade!',250,370);
-        context.strokeText('you can try 3 time!',250,390);
-        context.strokeText('Scores:',250,420);
-        context.strokeText('W: board Bigger +',270,420);
-        context.strokeText('S: Add ten to Score +',270,440);
-        context.strokeText('F: Faster ball +',270,460);
-        context.strokeText('w: board Smaller -',270,480);
-        context.strokeText('S: Munes ten to Score +',270,500);
-        context.strokeText('f: Slower ball +',270,520);
+        context.strokeText('Welcome to the Bounce-Ball game!',250,300);
+        context.strokeText('create by mohammad mahdizade!',250,320);
+        context.strokeText('you can try 3 time!',250,340);
+        context.strokeText('Scores:',250,380);
+        context.strokeText('W: board Bigger +',270,400);
+        context.strokeText('S: Add ten to Score +',270,415);
+        context.strokeText('F: Faster ball -',270,430);
+        context.strokeText('H: Add Heart +',270,445);
+        context.strokeText('w: board Smaller -',270,460);
+        context.strokeText('S: Munes ten to Score -',270,475);
+        context.strokeText('f: Slower ball +',270,490);
+        context.strokeText('h: Remove Heart -',270,505);
+        context.strokeText('*: Stick Model ',270,520);
+        context.strokeText('-: Line Gard ',270,535);
+        context.strokeText('?: Random ',270,550);
 
-        context.strokeText('press any key to start!',250,570);
+        context.strokeText('press any key to start!',250,600);
     }
    
     function showHelp(){
@@ -145,10 +159,12 @@ alert(1);
     }
    
     function drawText(){
-        context.font="15px aria";
-        context.strokeText(`Heart: ${gs_Heart}`, 10,15)
-        context.strokeText(`Score: ${gs_Score}`, 100,15)
-        context.strokeText(`Spead: ${gs_Spead} x`, 200,15)
+        context.font="14px aria";
+        context.strokeStyle="#FFFFFF";
+        context.strokeText(`Heart: ${gs_Heart}`, 10,15);
+        context.strokeText(`Score: ${gs_Score}`, 100,15);
+        context.strokeText(`Spead: ${gs_Spead} x`, 200,15);
+        context.strokeStyle="#000000";
     }
    
     function drawBox(){
@@ -177,14 +193,16 @@ alert(1);
             color="#555522";
             else  if(a=='1')
             color="#555511";
-            else  if(a=='W')
-            color="green";
-            else  if(a=='w')
-            color="red";
-            else  if(a=='S')
-            color="Yellow";
-            else  if(a=='s')
-            color="pink";
+            else  {
+                 color='red';
+                if(a=="W"||a=="S"||a=="f"||a=="*"||a=="-"||a=="H"||
+                (a=="-" && gs_gardLine==false)||
+                (a=="*" && gs_stickMode==false) )
+                    color="green";
+                else if(a==' '|| a=='?')
+                    color="blue";
+
+            }
             context.fillStyle=color;
 
             context.fill();
@@ -203,39 +221,53 @@ alert(1);
             //if(a.t=='')
             if(a.y>canvas.height)
                 continue;
+
+            let color='pink';
+            if(a.t=="W"||a.t=="S"||a.t=="f"||a.t=="*"||a.t=="#"||a.t=="H"||
+            (a.t=="#" && gs_gardLine==false)||
+            (a.t=="*" && gs_stickMode==false) )
+                color="green";
+
             context.beginPath();
             context.arc(a.x,a.y,13,Math.PI* (a.y/20 %2) -Math.PI,Math.PI* (a.y/20 %2) );
-            context.fillStroke="yellow";
-            context.stroke();
-
-
-            context.beginPath();
-            context.arc(a.x,a.y,10,0,Math.PI*(2) );
-           // context.fillStyle="red";
-           // context.fill();
+            context.strokeStyle=color;
             context.stroke();
             context.strokeText(a.t,a.x-3,a.y+3);
+
+            context.beginPath();
+            context.strokeStyle='#FFFFFF';
+            context.arc(a.x,a.y,10,0,Math.PI*(2) );
+
+            context.stroke();
+ 
 
             a.y++;
 
             //todo:remove
         }  
+        context.strokeStyle='black';
     }
 
     function drawWall(){
-        const tickt=2;
+        const tickt=3;
+        context.strokeStyle="black";
+        context.fillStyle='gray'
         context.beginPath();
         context.rect(0,0,canvas.width,tickt);
-        context.fillStyle="red";
+
         context.stroke();
         context.beginPath();
         context.rect(0,0,tickt,canvas.height);
-        context.fillStyle="red";
+
         context.stroke();
         context.beginPath();
         context.rect(canvas.width-tickt,0,tickt,canvas.height);
-        context.fillStyle="red";
         context.stroke();
+        if(gs_gardLine){
+            context.rect(0,canvas.height-5,canvas.width,canvas.height);
+            context.stroke();
+        }
+        context.strokeStyle="black";
     }
 
     function drawBall(){
@@ -250,14 +282,17 @@ alert(1);
         context.beginPath();
         context.rect(playerPosX,playerPosY,playerLen,10);
         // context.lineWidth = 1;
-  context.fillStyle = '#66AA66';
-  context.fill();
+        if(gs_stickMode)
+            context.fillStyle = '#6666AA';
+        else    
+            context.fillStyle = '#66AA66';
+        context.fill();
         context.stroke();
     }
 
     function calulateBall()
     {
-        if(ballEnable){
+        if(gs_ballEnable){
             ballPosX+=gs_Spead/10* ballSpeadX ;
             ballPosY+=gs_Spead/10* ballSpeadY;
         }
@@ -266,39 +301,56 @@ alert(1);
             ballPosY=playerPosY-10;
         }
 
-        if(ballPosX<0 || ballPosX>canvas.width)
+        if(ballPosX<5 || ballPosX>canvas.width-5)
             ballSpeadX=ballSpeadX*-1;
 
-        if(ballPosY<0)
+        if(ballPosY<5)
             ballSpeadY=ballSpeadY*-1;
         
-        if(ballPosY>canvas.height){
-         
-            ballEnable=false;
-            gs_Heart--;
+        if(ballPosY>canvas.height-5){
+            if(gs_gardLine)
+            {
+                gs_gardLine=false;
+                ballSpeadY=ballSpeadY*-1; 
+            }
+            else
+            newGame();
         }
 
 
-        if(ballPosY>playerPosY && ballPosY<playerPosY+10){
+        if(ballPosY>playerPosY-5 && ballPosY<playerPosY+5){
 
-            if(ballPosX>playerPosX && ballPosX<playerPosX+100)
+            if(ballPosX>playerPosX && ballPosX<playerPosX+playerLen)
             {
                 ballSpeadY=ballSpeadY*-1;
+                if(gs_stickMode)
+                    {
+                        gs_stickMode=false;
+                        gs_ballEnable=false;
+                        ballSpeadX=5;
+                        ballSpeadY=-5;
+                    }
             }
         }
 
         for (var i = 0; i < boxes.length; i++) {
-        for (var j = 0; j < boxes[i].length; j++) {
-        let a=boxes[i][j];
-        if(a!=""){
-            let x=100+(i*30);
-            let y=100+(j*30);
-            let len=25;
-            if(ballPosY>y && ballPosY<y+6){
+            for (var j = 0; j < boxes[i].length; j++) {
+            
+                let a=boxes[i][j];
+                if(a=="")
+                    continue;
+                let x=100+(i*30)-5;
+                let y=100+(j*30)-5;
+                let len=25+10;
 
-                if(ballPosX>x && ballPosX<x+len)
+                if(ballPosY>y && ballPosY<y+len && ballPosX>x && ballPosX<x+len)//colection
                 {
-                    ballSpeadY=ballSpeadY*-1;
+                    console.log(a);
+                    if(ballPosY<y+10 || ballPosY>y+len-10)
+                        ballSpeadY=ballSpeadY*-1;
+                    if(ballPosX<x+10 || ballPosX>x+len-10)
+                        ballSpeadX=ballSpeadX*-1;
+                   
                     if( a=='9')
                         boxes[i][j]='8';
                     else  if( a=='8')
@@ -319,45 +371,19 @@ alert(1);
                         boxes[i][j]=' ';
                     else if(a==" ")
                         boxes[i][j]='';
-                    else 
-                        goals.push({x:ballPosX,y:ballPosY,t:a});
-                    gs_Score++;
-                }
-            }
-            if(ballPosY>y+40 && ballPosY<y+46){
-
-                if(ballPosX>x && ballPosX<x+len)
-                {
-                    ballSpeadY=ballSpeadY*-1;
-                    if( a=='9')
-                        boxes[i][j]='8';
-                    else  if( a=='8')
-                        boxes[i][j]='7';
-                    else  if( a=='7')
-                        boxes[i][j]='6';
-                    else  if( a=='6')
-                        boxes[i][j]='5';
-                    else  if( a=='5')
-                        boxes[i][j]='4';
-                    else  if( a=='4')
-                        boxes[i][j]='3';
-                    else  if( a=='3')
-                        boxes[i][j]='2';
-                    else  if( a=='2')
-                        boxes[i][j]='1';
-                    else if( a=='1')
-                        boxes[i][j]=' ';
-                    else if(a==" ")
+                    else {
                         boxes[i][j]='';
-                    else 
-                        goals.push({x:ballPosX,y:ballPosY,t:a});
+                        if(a=="?")
+                            goals.push({x:ballPosX,y:ballPosY,t:getRandomScore()});
+                        else
+                            goals.push({x:ballPosX,y:ballPosY,t:a});
+                    }
                     gs_Score++;
                 }
             }
         }
     }
-        }}
-        
+   
     function calulateGoal()
     {
 
@@ -367,7 +393,7 @@ alert(1);
                 if(goal.x>playerPosX && goal.x<playerPosX+playerLen)
                 {
                    
-                   if(goal.t=='W')
+                   if(goal.t=='W'&& playerLen<150)
                    {
                         playerLen+=25;
                    }
@@ -388,47 +414,113 @@ alert(1);
                    {
                         gs_Spead+=1;
                    }
+                   if(goal.t=='H' )
+                   {
+                        gs_Heart+=1;
+                   }
+                   if(goal.t=='H'&& gs_Heart>0 )
+                   {
+                        gs_Heart-=1;
+                   }
                    if(goal.t=='s' && gs_Spead>2 )
                    {
                         gs_Spead-=1;
                    }
-
+                   if(goal.t=='*'  )
+                   {
+                       gs_stickMode=!gs_stickMode;
+                   }
+                   if(goal.t=='-'  )
+                   {
+                       gs_gardLine=!gs_gardLine;
+                   }
                    goal.t='';
                 }
             }
           
         }
     }
+
+    function getRandomScore(){
+       let a=Math.random();
+       if(a<0.1)return 'W';
+       if(a<0.2)return 'w';
+       if(a<0.3)return 'S';
+       if(a<0.4)return 's';
+       if(a<0.5)return 'F';
+       if(a<0.6)return 'f';
+       if(a<0.7)return 'H';
+       if(a<0.8)return 'h';
+       if(a<0.9)return '*';
+       return '-';
+    }
+    
+    function newGame(){
+        gs_ballEnable=false;
+            gs_stickMode=false;
+            ballSpeadX=5;
+            ballSpeadY=-5;
+            gs_Spead=10;
+            gs_Heart--;
+            if(gs_Heart<0)
+            {
+                gs_GameOver=true;
+                gs_Heart=0;
+            }
+            goals=[];
+    }
+    
+    function ResetGame(){
+        newGame();
+        gs_Heart=2;
+        gs_GameOver=false;
+        boxes=boxesOrgin.slice();
+    }
     
     document.onkeydown = function (event) {
-       gs_ShowSplash=false;
-      switch (event.keyCode) {
-        case 32:
-        needShowHelp=!needShowHelp;
-        ballEnable=true;
-            break;
-         case 37:
-            console.log("Left key is pressed.");
-            playerPosX-=5;
-            needShowHelp=false;
-            break;
-         case 38:
-            console.log("Up key is pressed.");
-            needShowHelp=false;
-            break;
-         case 39:
-            console.log("Right key is pressed.");
-            needShowHelp=false;
-            playerPosX+=5;
-            break;
-         case 40:
-            console.log("Down key is pressed.");
-            needShowHelp=false;
-            break;
-            default:
-            console.log(event.keyCode);
-                break;
+      if(gs_GameOver){
+        ResetGame();
       }
+      else
+      {
+        if(gs_ShowSplash){
+        gs_ShowSplash=false;
+       }
+       else
+       {
+            needShowHelp=!needShowHelp;
+       }
+          gs_ballEnable=true;
+    }
+        
+        return;
+    //   switch (event.keyCode) {
+    //     case 32:
+    //     needShowHelp=!needShowHelp;
+    //     gs_ballEnable=true;
+    //         break;
+    //      case 37:
+    //         console.log("Left key is pressed.");
+    //         playerPosX-=5;
+    //         needShowHelp=false;
+    //         break;
+    //      case 38:
+    //         console.log("Up key is pressed.");
+    //         needShowHelp=false;
+    //         break;
+    //      case 39:
+    //         console.log("Right key is pressed.");
+    //         needShowHelp=false;
+    //         playerPosX+=5;
+    //         break;
+    //      case 40:
+    //         console.log("Down key is pressed.");
+    //         needShowHelp=false;
+    //         break;
+    //         default:
+    //         console.log(event.keyCode);
+    //             break;
+    //   }
    };
 
 </script>
